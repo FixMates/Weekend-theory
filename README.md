@@ -18,7 +18,7 @@ The root `index.html` is retained for the existing GitHub Pages preview. When ed
 - JavaScript syntax and JSON configuration: statically validated.
 - Firebase deployment: **not yet run**; it requires access to your Firebase project and local CLI login.
 - Razorpay Checkout UI/API integration: **implemented but disabled by default**. The frontend `PAYMENTS_ENABLED` flag and both frontend/backend `confirmedDepartures` allowlists are empty. Keep them disabled until actual dates, token policy, final fare, cancellation/refund terms and availability are confirmed. Backend rejects every order date not explicitly allowlisted.
-- The backend's shared-trip order endpoint rejects dates that are not future and explicitly allowlisted as confirmed departures, and rejects private trips that have no confirmed full-vehicle quote.
+- The backend's shared-trip order endpoint rejects dates that are not future and explicitly allowlisted as confirmed departures, and rejects private trips that have no confirmed full-vehicle quote. Razorpay payment status is checked server-side using the checkout signature, Razorpay's payment API and a signed `payment.captured` webhook.
 
 ## Before deployment
 
@@ -43,13 +43,16 @@ firebase use --add
 
 When `firebase use --add` prompts you, select your existing Firebase project and give it the alias `default`. This creates a local `.firebaserc` file; it is intentionally not committed because the Firebase project ID is account-specific.
 
-Set the three secrets interactively. Use your **Razorpay Test Mode** credentials for the first deployment:
+Set the required secrets interactively. Use your **Razorpay Test Mode** credentials for the first deployment. Configure `RAZORPAY_WEBHOOK_SECRET` with the webhook secret you create in the Razorpay dashboard:
 
 ```powershell
 firebase functions:secrets:set RAZORPAY_KEY_ID
 firebase functions:secrets:set RAZORPAY_KEY_SECRET
 firebase functions:secrets:set BOOKING_TOKEN_RUPEES
+firebase functions:secrets:set RAZORPAY_WEBHOOK_SECRET
 ```
+
+In the Razorpay dashboard, add a webhook endpoint at `https://YOUR_PROJECT_ID.web.app/api/razorpay-webhook` and subscribe to `payment.captured`. Use the exact same webhook secret in Firebase Secret Manager. Start in Test Mode.
 
 Enter `100` for the token only if that is your intended policy. Never put the Razorpay Key Secret in `index.html`, `public/index.html`, a committed file, or a public chat.
 
