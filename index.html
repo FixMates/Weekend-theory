@@ -72,7 +72,7 @@ const modal=document.getElementById('bookingModal'),tripInput=document.getElemen
 document.querySelectorAll('[data-trip]').forEach(btn=>btn.addEventListener('click',()=>{
  selectedTrip=btn.dataset.trip;const data=tripData[selectedTrip];if(!data){console.error('Missing trip configuration:',selectedTrip);return;}tripInput.value=selectedTrip;document.getElementById('modalTitle').textContent=selectedTrip;
  document.getElementById('itinerary').innerHTML='<b>Proposed route</b><br>'+data.route+'<br><br><b>Indicative schedule</b>'+data.schedule.map(s=>'<div style="display:grid;grid-template-columns:55px 1fr;gap:8px;border-top:1px solid #dce0d4;padding:6px 0"><strong>'+s[0]+'</strong><span>'+s[1]+'</span></div>').join('')+'<br><span style="color:#687267">'+data.note+'</span>';
- document.getElementById('tripPrice').textContent='₹'+data.price.toLocaleString('en-IN')+' onwards';modal.classList.add('show');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('tripDate').focus(),100)
+ document.getElementById('tripPrice').textContent='₹'+data.price.toLocaleString('en-IN')+' onwards';updateFare();updateSubmitLabel();modal.classList.add('show');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('tripDate').focus(),100)
 }));
 function closeModal(){modal.classList.remove('show');document.body.style.overflow=''}document.getElementById('closeModal').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 const travelStyle=document.getElementById('travelStyle');
@@ -93,6 +93,7 @@ function updateFare(){
    price.textContent='Full vehicle quote required';
    note.textContent=(style==='private_solo'?'Reserve a vehicle exclusively for yourself.':'Reserve a vehicle exclusively for your gang.')+' You pay the complete vehicle/trip cost, regardless of unused seats. Choose a vehicle preference below; the organiser will confirm the final total before any payment.';
  }
+ updateSubmitLabel();
 }
 travelStyle.addEventListener('change',updateFare);
 document.getElementById('groupSize').addEventListener('change',updateFare);
