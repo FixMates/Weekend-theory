@@ -45,16 +45,19 @@
 <div class="itinerary" id="itinerary" style="background:#f0f1e9;border-radius:14px;padding:15px;margin:15px 0;font-size:12px;line-height:1.7"></div>
 <form id="interestForm" class="form-grid">
 <input type="hidden" id="tripName" name="trip"><div class="field"><label for="tripDate">Departure date</label><select id="tripDate" name="date" required><option value="">Choose a confirmed departure</option><option value="Next available (to be confirmed)">Next available (to be confirmed)</option></select></div>
-<div class="field"><label for="vehicleType">Vehicle preference</label><select id="vehicleType" name="vehicle" required><option value="AC">AC vehicle</option><option value="Non-AC">Non-AC vehicle</option></select></div>
-<div class="field"><label for="seatType">Vehicle size / seating</label><select id="seatType" name="seats" required><option value="4-seater car">4-seater car</option><option value="5-seater car">5-seater car</option><option value="6-seater vehicle">6-seater vehicle</option><option value="Tempo Traveller">Tempo Traveller</option></select></div>
+<div class="field"><label for="travelStyle">How would you like to travel?</label><select id="travelStyle" name="travelStyle" required><option value="shared">Join random travellers — pay per person</option><option value="private_group">Private trip with my gang — pay full vehicle cost</option><option value="private_solo">Private vehicle for myself — pay full vehicle cost</option></select></div>
+<div id="privateVehicleFields" style="display:none">
+<div class="field"><label for="vehicleType">Vehicle preference</label><select id="vehicleType" name="vehicle"><option value="AC">AC vehicle</option><option value="Non-AC">Non-AC vehicle</option></select></div>
+<div class="field"><label for="seatType">Vehicle size / seating</label><select id="seatType" name="seats"><option value="4-seater car">4-seater car</option><option value="5-seater car">5-seater car</option><option value="6-seater vehicle">6-seater vehicle</option><option value="Tempo Traveller">Tempo Traveller</option></select></div>
+</div>
 <div class="field"><label for="pickup">Pickup preference</label><select id="pickup" name="pickup" required><option value="Bengaluru (exact point to be confirmed)">Bengaluru — exact point to be confirmed</option></select></div>
 <div class="field"><label for="fullName">Your name</label><input id="fullName" name="name" required maxlength="100" placeholder="Enter your name"></div>
 <div class="field"><label for="phone">Mobile / WhatsApp number</label><input id="phone" name="phone" required inputmode="tel" pattern="[0-9+() -]{8,18}" placeholder="+91 98765 43210"></div>
 <div class="field"><label for="groupSize">Number of travellers</label><select id="groupSize" name="travellers"><option value="1">1 traveller</option><option value="2">2 travellers</option><option value="3">3 travellers</option><option value="4">4 travellers</option><option value="5">5 travellers</option><option value="6">6 travellers</option><option value="7">7 travellers</option><option value="8">8 travellers</option><option value="9">9+ travellers</option></select></div>
-<div class="advance"><span>Estimated total / person</span><strong id="tripPrice">Price to be confirmed</strong></div>
-<div class="advance"><span>Booking token</span><strong>₹100 / person (proposed)</strong></div>
-<button class="btn submit" type="submit">Continue to payment ↗</button>
-<p class="note">The displayed itineraries and prices are examples until actual departures are confirmed. Payment will only be enabled after the secure Razorpay backend is deployed and configured. Do not pay until booking dates and vehicle availability are confirmed.</p></form></div></div>
+<div class="advance"><span id="fareLabel">Indicative price per person</span><strong id="tripPrice">Price to be confirmed</strong></div>
+<div id="fareNote" class="note" style="background:#f8f0e8;border-radius:10px;padding:12px;margin:10px 0">Shared trips are priced per person. The organiser assigns the vehicle based on confirmed bookings.</div>
+<button class="btn submit" type="submit">Request availability & final quote ↗</button>
+<p class="note">No payment is taken at this stage. Shared-trip prices are indicative; private vehicle bookings require a confirmed full-vehicle quote before payment.</p></form></div></div>
 <div class="toast" id="toast" role="status"></div>
 <script>
 const filters=document.querySelectorAll('.filter'),cards=document.querySelectorAll('.trip');
@@ -72,17 +75,39 @@ document.querySelectorAll('[data-trip]').forEach(btn=>btn.addEventListener('clic
  document.getElementById('tripPrice').textContent='₹'+data.price.toLocaleString('en-IN')+' onwards';modal.classList.add('show');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('tripDate').focus(),100)
 }));
 function closeModal(){modal.classList.remove('show');document.body.style.overflow=''}document.getElementById('closeModal').addEventListener('click',closeModal);modal.addEventListener('click',e=>{if(e.target===modal)closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
-document.getElementById('vehicleType').addEventListener('change',()=>{const p=tripData[selectedTrip]?.price||0;document.getElementById('tripPrice').textContent='₹'+p.toLocaleString('en-IN')+' onwards · '+document.getElementById('vehicleType').value+' (final fare pending confirmation)'});
-document.getElementById('interestForm').addEventListener('submit',async e=>{
+const travelStyle=document.getElementById('travelStyle');
+function updateFare(){
+ const style=travelStyle.value, data=tripData[selectedTrip];
+ const privateFields=document.getElementById('privateVehicleFields');
+ const vehicle=document.getElementById('vehicleType'), seats=document.getElementById('seatType');
+ const price=document.getElementById('tripPrice'), label=document.getElementById('fareLabel'), note=document.getElementById('fareNote');
+ const group=Number(document.getElementById('groupSize').value||1);
+ privateFields.style.display=style==='shared'?'none':'grid';
+ vehicle.required=style!=='shared';seats.required=style!=='shared';
+ if(style==='shared'){
+   label.textContent='Indicative price per person';
+   price.textContent=data?'₹'+data.price.toLocaleString('en-IN')+' onwards':'Price to be confirmed';
+   note.textContent='Join other travellers. You pay only for your own seat; the organiser assigns the vehicle. Estimated trip subtotal for '+group+' traveller(s): '+(data?'₹'+(data.price*group).toLocaleString('en-IN')+' onwards':'to be confirmed')+'.';
+ } else {
+   label.textContent='Private booking price';
+   price.textContent='Full vehicle quote required';
+   note.textContent=(style==='private_solo'?'Reserve a vehicle exclusively for yourself.':'Reserve a vehicle exclusively for your gang.')+' You pay the complete vehicle/trip cost, regardless of unused seats. Choose a vehicle preference below; the organiser will confirm the final total before any payment.';
+ }
+}
+travelStyle.addEventListener('change',updateFare);
+document.getElementById('groupSize').addEventListener('change',updateFare);
+document.getElementById('vehicleType').addEventListener('change',updateFare);
+document.getElementById('seatType').addEventListener('change',updateFare);
+document.getElementById('interestForm').addEventListener('submit',e=>{
  e.preventDefault();const f=new FormData(e.target);
- const booking={trip:selectedTrip,date:f.get('date'),vehicle:f.get('vehicle'),seats:f.get('seats'),pickup:f.get('pickup'),name:f.get('name'),phone:f.get('phone'),travellers:Number(f.get('travellers'))};
- const API_BASE_URL=''; // Set this to your deployed backend URL after deploying the server.
- if(!API_BASE_URL){const msg='Hi Weekend Theory! Please confirm availability and final fare. Trip: '+booking.trip+'. Date: '+booking.date+'. Vehicle: '+booking.vehicle+' / '+booking.seats+'. Pickup: '+booking.pickup+'. Name: '+booking.name+'. Phone: '+booking.phone+'. Travellers: '+booking.travellers+'.';window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener');closeModal();return}
- try{const response=await fetch(API_BASE_URL+'/api/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(booking)});const order=await response.json();if(!response.ok)throw new Error(order.error||'Unable to create payment order');
- const options={key:order.keyId,amount:order.amount,currency:order.currency,order_id:order.orderId,name:'Weekend Theory',description:'Booking token — '+booking.trip,prefill:{name:booking.name,contact:booking.phone},notes:{trip:booking.trip,departure:booking.date,vehicle:booking.vehicle,travellers:String(booking.travellers)},handler:async result=>{const verify=await fetch(API_BASE_URL+'/api/verify-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...result,booking})});const outcome=await verify.json();if(!verify.ok||!outcome.verified){alert('Payment status could not be verified. Please contact Weekend Theory before retrying.');return}alert('Payment verified. Booking reference: '+outcome.bookingReference);closeModal()},modal:{ondismiss:()=>{}}};
- const checkout=new Razorpay(options);checkout.on('payment.failed',response=>alert('Payment failed: '+(response.error.description||'Please try again.')));checkout.open();
- }catch(err){alert('Payment is not available yet: '+err.message)}
+ const style=f.get('travelStyle'), shared=style==='shared';
+ const booking={trip:selectedTrip,date:f.get('date'),travelStyle:style,vehicle:shared?'Assigned by organiser':f.get('vehicle'),seats:shared?'Assigned by organiser':f.get('seats'),pickup:f.get('pickup'),name:f.get('name'),phone:f.get('phone'),travellers:Number(f.get('travellers'))};
+ const styleLabel=style==='shared'?'Join random travellers (per-person fare)':style==='private_group'?'Private trip with my gang (full vehicle cost)':'Private vehicle for myself (full vehicle cost)';
+ const priceText=shared?(tripData[selectedTrip].price.toLocaleString('en-IN')+' onwards per person'):'Full vehicle quote requested';
+ const msg='Hi Weekend Theory! Please confirm availability and final pricing. Trip: '+booking.trip+'. Travel style: '+styleLabel+'. Date: '+booking.date+'. Vehicle: '+booking.vehicle+' / '+booking.seats+'. Pickup: '+booking.pickup+'. Travellers: '+booking.travellers+'. Indicative pricing: '+priceText+'. Name: '+booking.name+'. Phone: '+booking.phone+'.';
+ window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener');
 });
 document.getElementById('year').textContent=new Date().getFullYear();
+updateFare();
 </script>
 </body></html>
