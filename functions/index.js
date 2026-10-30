@@ -69,7 +69,7 @@ const validTrips = new Set([
 // Keep empty until the organiser confirms real departures. Add exact YYYY-MM-DD dates here before accepting payments.
 const confirmedDepartures = {
   'Misty Mountain Reset': [],
-  'The Cinema Trail': [],
+  'The Cinema Trail': ['2026-11-06', '2026-11-13'],
   'Strangers, Not for Long': []
 };
 
@@ -90,7 +90,7 @@ function getRazorpay() {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true, service: 'weekend-theory-api', paymentFlow: 'requires confirmed departure and configured Razorpay secrets' });
+  res.json({ ok: true, service: 'weekend-theory-api', checkoutEnabled: confirmedDepartures['The Cinema Trail'].some(date => date > indiaToday()), paymentFlow: 'requires confirmed departure and configured Razorpay secrets' });
 });
 
 app.post('/api/create-order', async (req, res) => {
