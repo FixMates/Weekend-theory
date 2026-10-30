@@ -9,11 +9,56 @@ const Razorpay = require('razorpay');
 initializeApp();
 const db = getFirestore();
 const app = express();
+
+// Razorpay signs the exact raw request body. Register this route before express.json().
+app.post('/api/razorpay-webhook', express.raw({ type: 'application/json', limit: '100kb' }), async (req, res) => {
+  try {
+    const secret = razorpayWebhookSecret.value();
+    const signature = req.get('x-razorpay-signature') || '';
+    if (!secret || !signature || !Buffer.isBuffer(req.body)) {
+      return res.status(400).send('Invalid webhook configuration or body.');
+    }
+    const expected = crypto.createHmac('sha256', secret).update(req.body).digest('hex');
+    const expectedBuffer = Buffer.from(expected, 'hex');
+    const receivedBuffer = Buffer.from(signature, 'hex');
+    if (expectedBuffer.length !== receivedBuffer.length || !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)) {
+      return res.status(400).send('Invalid webhook signature.');
+    }
+
+    const event = JSON.parse(req.body.toString('utf8'));
+    if (event.event === 'payment.captured') {
+      const payment = event.payload?.payment?.entity;
+      if (payment?.order_id && payment.status === 'captured') {
+        const matches = await db.collection('bookings').where('razorpayOrderId', '==', payment.order_id).limit(1).get();
+        if (!matches.empty) {
+          const doc = matches.docs[0];
+          const booking = doc.data();
+          if (payment.amount === booking.amountPaise && payment.currency === 'INR') {
+            await doc.ref.update({
+              razorpayPaymentId: payment.id,
+              paymentStatus: 'captured',
+              bookingStatus: 'payment_verified_pending_trip_confirmation',
+              updatedAt: FieldValue.serverTimestamp()
+            });
+          } else {
+            console.error('Webhook payment amount/currency mismatch for order:', payment.order_id);
+          }
+        }
+      }
+    }
+    return res.status(200).json({ received: true });
+  } catch (err) {
+    console.error('Razorpay webhook failed:', err.message);
+    return res.status(400).send('Webhook processing failed.');
+  }
+});
+
 app.use(express.json({ limit: '50kb' }));
 
 const razorpayKeyId = defineSecret('RAZORPAY_KEY_ID');
 const razorpayKeySecret = defineSecret('RAZORPAY_KEY_SECRET');
 const bookingTokenRupees = defineSecret('BOOKING_TOKEN_RUPEES');
+const razorpayWebhookSecret = defineSecret('RAZORPAY_WEBHOOK_SECRET');
 
 const validTrips = new Set([
   'Misty Mountain Reset',
@@ -175,7 +220,7 @@ app.post('/api/verify-payment', async (req, res) => {
 
 exports.api = onRequest({
   region: 'asia-south1',
-  secrets: [razorpayKeyId, razorpayKeySecret, bookingTokenRupees],
+  secrets: [razorpayKeyId, razorpayKeySecret, bookingTokenRupees, razorpayWebhookSecret],
   maxInstances: 5,
   timeoutSeconds: 30
 }, app);
