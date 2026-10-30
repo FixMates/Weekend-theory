@@ -1,37 +1,83 @@
 # Weekend Theory
 
-Premium, mobile-first trip discovery and booking website for curated weekend departures from Bengaluru.
+Mobile-first trip discovery and booking-enquiry website for curated weekend experiences from Bengaluru.
 
-## Frontend features
-- Responsive trip cards and category filters.
-- Trip details with proposed route, sample sightseeing stops and break timings.
-- AC / Non-AC vehicle choice, seating size, departure-date selector, pickup preference and traveller details.
-- Razorpay Checkout wiring, designed to connect to the separate API in `server/`.
-- WhatsApp enquiry fallback while the API URL is not configured.
+## Firebase architecture
 
-**Important:** The trip names, itinerary timings and prices currently shown are illustrative placeholders, not confirmed departures. Confirm destinations, route timings, actual vehicle availability/capacity, inclusions/exclusions, meal costs, cancellation/refund policy and exact pickup point before accepting bookings or running ads.
+- **Firebase Hosting** serves the static website from `public/`.
+- **Cloud Functions for Firebase (Node.js 22)** provides the secure API in `functions/index.js`.
+- **Cloud Firestore** stores booking records. Public client access is denied by `firestore.rules`.
+- **Razorpay** is prepared for server-side order creation and payment verification. Secret credentials are stored in Firebase Secret Manager, never in the website or GitHub.
 
-## Razorpay setup
+The root `index.html` is retained for the existing GitHub Pages preview. When editing the website, keep it and `public/index.html` in sync; Firebase Hosting deploys `public/index.html`.
 
-The `server/` folder contains a Node.js API that creates Razorpay Orders on the server, verifies payment signatures, checks the payment with Razorpay and records booking requests in Supabase. The Key Secret and Supabase service-role key must stay on the server, never in browser JavaScript or GitHub.
+## Current readiness
 
-1. Create/activate a Razorpay account and begin with **Test Mode** API keys.
-2. Create a Supabase project and run `server/schema.sql` in its SQL Editor.
-3. Deploy `server/` as a Node.js web service with HTTPS. Configure these environment variables in the host dashboard:
-   - `RAZORPAY_KEY_ID`
-   - `RAZORPAY_KEY_SECRET`
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `FRONTEND_ORIGIN=https://fixmates.github.io`
-   - `BOOKING_TOKEN_RUPEES=100`
-4. To run locally, copy `server/.env.example` to `server/.env`, add your Test Mode keys and Supabase values, then run `npm install` and `npm start` from the `server/` directory.
-5. In `index.html`, set `API_BASE_URL` in the booking submit handler to your deployed API base URL (HTTPS, no trailing slash). The site will continue to use the WhatsApp enquiry fallback until this is configured.
-6. Test successful and failed payments end-to-end with Razorpay Test Mode before switching to Live Mode.
+- Firebase Hosting configuration: added.
+- Firebase Functions API and Firestore rules: added.
+- JavaScript syntax and JSON configuration: statically validated.
+- Firebase deployment: **not yet run**; it requires access to your Firebase project and local CLI login.
+- Live Razorpay payments: **not enabled in the frontend**. The current site intentionally collects WhatsApp enquiries while dates, prices, suppliers and availability are placeholders. Do not collect a token until a real departure date, final fare, cancellation terms and availability are confirmed.
+- The backend's shared-trip order endpoint rejects placeholder or non-future dates and rejects private trips that have no confirmed full-vehicle quote.
 
-The ₹100-per-traveller token is a proposed setting, not a final commercial policy. Decide whether it is refundable, how it applies to the total fare, and what happens if a trip is cancelled before accepting payments.
+## Before deployment
 
-## Publish frontend with GitHub Pages
-Open repository **Settings → Pages → Deploy from a branch → `main` → `/(root)` → Save**. The published URL will be shown in the Pages settings once deployment completes.
+1. Confirm the actual trip routes, dates, prices, pickup points, inclusions/exclusions, vehicle capacities and cancellation/refund terms.
+2. Create or select a Firebase project. Cloud Functions deployment requires the **Blaze (pay-as-you-go)** billing plan; set budget alerts and usage alerts before deploying.
+3. Create a Cloud Firestore database in **asia-south1 (Mumbai)** to align with the function region. Firestore's database location cannot be changed later.
+4. Create or activate a Razorpay account. Start with **Test Mode** API keys only.
+5. Decide the token policy. The default `BOOKING_TOKEN_RUPEES` secret is set to `100` in the example below; change it if your policy differs.
 
-## Before taking real bookings
-This starter records payment-verified booking requests; it does not automatically reserve vehicle inventory or guarantee that a trip will depart. The organiser must confirm availability and final departure details. Before scaling, add inventory/seat locking, refund workflows, verified webhook handling, booking notifications and clear legal/policy pages.
+## Deploy from Windows
+
+Install Node.js 22 LTS from the official Node.js website, install Git if needed, and open PowerShell.
+
+```powershell
+git clone https://github.com/FixMates/Weekend-theory.git
+cd Weekend-theory
+npm install -g firebase-tools
+firebase login
+firebase projects:list
+firebase use --add
+```
+
+When `firebase use --add` prompts you, select your existing Firebase project and give it the alias `default`. This creates a local `.firebaserc` file; it is intentionally not committed because the Firebase project ID is account-specific.
+
+Set the three secrets interactively. Use your **Razorpay Test Mode** credentials for the first deployment:
+
+```powershell
+firebase functions:secrets:set RAZORPAY_KEY_ID
+firebase functions:secrets:set RAZORPAY_KEY_SECRET
+firebase functions:secrets:set BOOKING_TOKEN_RUPEES
+```
+
+Enter `100` for the token only if that is your intended policy. Never put the Razorpay Key Secret in `index.html`, `public/index.html`, a committed file, or a public chat.
+
+Install the function dependencies and deploy:
+
+```powershell
+cd functions
+npm install
+cd ..
+firebase deploy --only hosting,functions,firestore:rules
+```
+
+The CLI prints the Hosting URL, usually `https://YOUR_PROJECT_ID.web.app`. Open that URL and test trip details, filters, mobile layout and WhatsApp enquiry. The API health endpoint is `https://YOUR_PROJECT_ID.web.app/api/health`.
+
+## Add a custom domain
+
+In Firebase Console, open **Hosting → Add custom domain**, enter the domain you own and follow the exact DNS records Firebase displays. Do not guess DNS records. Firebase provisions HTTPS after DNS verification.
+
+## Cost and billing safeguards
+
+Firebase Hosting and Firestore may fit within their no-cost quotas at low usage, but Cloud Functions requires Blaze billing. Blaze is pay-as-you-go, not a guarantee of zero cost. Set a Google Cloud budget alert, monitor the Billing and Usage pages, and keep function max instances constrained (currently 5). Budget alerts notify you; they do not automatically stop all spending.
+
+## Payment flow limitations before public launch
+
+The backend supports creating a ₹-denominated Razorpay order for a **shared trip with a real future departure date** and verifies the captured payment before marking it verified. It does not currently provide seat inventory locking, organiser/admin confirmation tools, refund automation, a Razorpay webhook, booking notifications or private-trip quote collection. The current frontend deliberately remains enquiry-first and does not initiate online payment. Complete and test these workflows in Razorpay Test Mode before enabling payment in the frontend or using Live Mode.
+
+## Security
+
+- Firestore client rules deny all direct public reads/writes to booking documents; the Admin SDK operates on the server.
+- Razorpay credentials are loaded from Firebase Secret Manager.
+- Never commit `.env` files, service-account keys, Razorpay secrets or Firebase Admin credentials.
