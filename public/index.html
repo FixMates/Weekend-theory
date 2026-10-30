@@ -44,7 +44,7 @@
 <div class="modal-backdrop" id="bookingModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><button class="close" id="closeModal" aria-label="Close">×</button><div class="eyebrow">Trip details & booking</div><h2 id="modalTitle">Plan your escape</h2><p id="modalDesc">Review the sample itinerary and select your preferred vehicle before continuing.</p>
 <div class="itinerary" id="itinerary" style="background:#f0f1e9;border-radius:14px;padding:15px;margin:15px 0;font-size:12px;line-height:1.7"></div>
 <form id="interestForm" class="form-grid">
-<input type="hidden" id="tripName" name="trip"><div class="field"><label for="tripDate">Departure date</label><select id="tripDate" name="date" required><option value="">Choose a confirmed departure</option><option value="Next available (to be confirmed)">Next available (to be confirmed)</option></select></div>
+<input type="hidden" id="tripName" name="trip"><div class="field"><label for="tripDate">Preferred departure date</label><input type="date" id="tripDate" name="date" required><small class="note">Dates are preferences until Weekend Theory confirms a departure.</small></div>
 <div class="field"><label for="travelStyle">How would you like to travel?</label><select id="travelStyle" name="travelStyle" required><option value="shared">Join random travellers — pay per person</option><option value="private_group">Private trip with my gang — pay full vehicle cost</option><option value="private_solo">Private vehicle for myself — pay full vehicle cost</option></select></div>
 <div id="privateVehicleFields" style="display:none">
 <div class="field"><label for="vehicleType">Vehicle preference</label><select id="vehicleType" name="vehicle"><option value="AC">AC vehicle</option><option value="Non-AC">Non-AC vehicle</option></select></div>
@@ -56,8 +56,8 @@
 <div class="field"><label for="groupSize">Number of travellers</label><select id="groupSize" name="travellers"><option value="1">1 traveller</option><option value="2">2 travellers</option><option value="3">3 travellers</option><option value="4">4 travellers</option><option value="5">5 travellers</option><option value="6">6 travellers</option><option value="7">7 travellers</option><option value="8">8 travellers</option><option value="9">9+ travellers</option></select></div>
 <div class="advance"><span id="fareLabel">Indicative price per person</span><strong id="tripPrice">Price to be confirmed</strong></div>
 <div id="fareNote" class="note" style="background:#f8f0e8;border-radius:10px;padding:12px;margin:10px 0">Shared trips are priced per person. The organiser assigns the vehicle based on confirmed bookings.</div>
-<button class="btn submit" type="submit">Request availability & final quote ↗</button>
-<p class="note">No payment is taken at this stage. Shared-trip prices are indicative; private vehicle bookings require a confirmed full-vehicle quote before payment.</p></form></div></div>
+<button class="btn submit" id="bookingSubmit" type="submit">Request availability & final quote ↗</button>
+<p class="note" id="paymentDisclosure">Payments are not enabled yet. Your trip date and final fare must be confirmed by the organiser before a booking token can be paid. Private vehicle bookings require a confirmed full-vehicle quote.</p></form></div></div>
 <div class="toast" id="toast" role="status"></div>
 <script>
 const filters=document.querySelectorAll('.filter'),cards=document.querySelectorAll('.trip');
@@ -98,16 +98,70 @@ travelStyle.addEventListener('change',updateFare);
 document.getElementById('groupSize').addEventListener('change',updateFare);
 document.getElementById('vehicleType').addEventListener('change',updateFare);
 document.getElementById('seatType').addEventListener('change',updateFare);
-document.getElementById('interestForm').addEventListener('submit',e=>{
+// Razorpay Checkout is wired to the backend but intentionally gated until real departures and pricing are confirmed.
+const PAYMENTS_ENABLED = false;
+const confirmedDepartures = {
+ 'Misty Mountain Reset': [],
+ 'The Cinema Trail': [],
+ 'Strangers, Not for Long': []
+};
+const dateInput=document.getElementById('tripDate');
+dateInput.min=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+function isConfirmedDeparture(trip,date){return Array.isArray(confirmedDepartures[trip])&&confirmedDepartures[trip].includes(date);}
+function showToast(message){
+ const toast=document.getElementById('toast');toast.textContent=message;toast.classList.add('show');
+ clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>toast.classList.remove('show'),4500);
+}
+function updateSubmitLabel(){
+ const canPay=PAYMENTS_ENABLED&&travelStyle.value==='shared'&&isConfirmedDeparture(selectedTrip,dateInput.value);
+ document.getElementById('bookingSubmit').textContent=canPay?'Pay booking token securely ↗':'Request availability & final quote ↗';
+ document.getElementById('paymentDisclosure').textContent=canPay
+  ?'Razorpay will collect the booking token shown at checkout. The remaining trip fare and cancellation terms must be reviewed before payment.'
+  :'Payments are not enabled yet. Your preferred date and final fare must be confirmed by the organiser. Private vehicle bookings require a confirmed full-vehicle quote.';
+}
+dateInput.addEventListener('change',updateSubmitLabel);
+async function startRazorpayPayment(booking){
+ if(!window.Razorpay)throw new Error('Secure checkout did not load. Please retry or contact us.');
+ const response=await fetch('/api/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(booking)});
+ const order=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(order.error||'Could not create a payment order.');
+ const checkout=new Razorpay({
+  key:order.keyId,order_id:order.orderId,amount:order.amount,currency:order.currency,
+  name:'Weekend Theory',description:'Booking token · '+booking.trip,
+  prefill:{name:booking.name,contact:booking.phone},
+  notes:{trip:booking.trip,departure:booking.date,bookingReference:order.bookingReference},
+  theme:{color:'#183b2d'},
+  modal:{ondismiss:()=>showToast('Checkout closed. No booking confirmation was recorded.')},
+  handler:async function(payment){
+   try{
+    const verifyResponse=await fetch('/api/verify-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payment)});
+    const verification=await verifyResponse.json().catch(()=>({}));
+    if(!verifyResponse.ok||!verification.verified)throw new Error(verification.error||'Payment verification failed.');
+    closeModal();showToast('Payment verified. The organiser will confirm your trip.');
+    alert('Payment verified successfully. Booking reference: '+verification.bookingReference+'. Your departure remains subject to organiser confirmation.');
+   }catch(error){showToast(error.message||'Payment verification is pending. Do not pay again; contact the organiser.');}
+  }
+ });
+ checkout.on('payment.failed',()=>showToast('Payment failed. No trip is confirmed; you can retry or contact the organiser.'));
+ checkout.open();
+}
+document.getElementById('interestForm').addEventListener('submit',async e=>{
  e.preventDefault();const f=new FormData(e.target);
  const style=f.get('travelStyle'), shared=style==='shared';
  const booking={trip:selectedTrip,date:f.get('date'),travelStyle:style,vehicle:shared?'Assigned by organiser':f.get('vehicle'),seats:shared?'Assigned by organiser':f.get('seats'),pickup:f.get('pickup'),name:f.get('name'),phone:f.get('phone'),travellers:Number(f.get('travellers'))};
  const styleLabel=style==='shared'?'Join random travellers (per-person fare)':style==='private_group'?'Private trip with my gang (full vehicle cost)':'Private vehicle for myself (full vehicle cost)';
  const priceText=shared?(tripData[selectedTrip].price.toLocaleString('en-IN')+' onwards per person'):'Full vehicle quote requested';
- const msg='Hi Weekend Theory! Please confirm availability and final pricing. Trip: '+booking.trip+'. Travel style: '+styleLabel+'. Date: '+booking.date+'. Vehicle: '+booking.vehicle+' / '+booking.seats+'. Pickup: '+booking.pickup+'. Travellers: '+booking.travellers+'. Indicative pricing: '+priceText+'. Name: '+booking.name+'. Phone: '+booking.phone+'.';
+ if(PAYMENTS_ENABLED&&shared&&isConfirmedDeparture(booking.trip,booking.date)){
+  const submit=document.getElementById('bookingSubmit');submit.disabled=true;submit.textContent='Connecting to secure checkout…';
+  try{await startRazorpayPayment(booking);}catch(error){showToast(error.message||'Unable to start checkout. Please contact the organiser.');}
+  finally{submit.disabled=false;updateSubmitLabel();}
+  return;
+ }
+ const msg='Hi Weekend Theory! Please confirm availability and final pricing. Trip: '+booking.trip+'. Travel style: '+styleLabel+'. Preferred date: '+booking.date+'. Vehicle: '+booking.vehicle+' / '+booking.seats+'. Pickup: '+booking.pickup+'. Travellers: '+booking.travellers+'. Indicative pricing: '+priceText+'. Name: '+booking.name+'. Phone: '+booking.phone+'.';
  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank','noopener');
 });
 document.getElementById('year').textContent=new Date().getFullYear();
 updateFare();
+updateSubmitLabel();
 </script>
 </body></html>
