@@ -100,10 +100,10 @@ document.getElementById('groupSize').addEventListener('change',updateFare);
 document.getElementById('vehicleType').addEventListener('change',updateFare);
 document.getElementById('seatType').addEventListener('change',updateFare);
 // Razorpay Checkout is wired to the backend but intentionally gated until real departures and pricing are confirmed.
-const PAYMENTS_ENABLED = false;
+const PAYMENTS_ENABLED = true;
 const confirmedDepartures = {
  'Misty Mountain Reset': [],
- 'The Cinema Trail': [],
+ 'The Cinema Trail': ['2026-11-06', '2026-11-13'],
  'Strangers, Not for Long': []
 };
 const dateInput=document.getElementById('tripDate');
