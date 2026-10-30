@@ -77,7 +77,7 @@ Firebase Hosting and Firestore may fit within their no-cost quotas at low usage,
 
 ## Payment flow limitations before public launch
 
-The backend supports creating a ₹-denominated Razorpay order for a **shared trip with a real future departure date** and verifies the captured payment before marking it verified. It does not currently provide seat inventory locking, organiser/admin confirmation tools, refund automation, a Razorpay webhook, booking notifications or private-trip quote collection. The current frontend deliberately remains enquiry-first and does not initiate online payment. Complete and test these workflows in Razorpay Test Mode before enabling payment in the frontend or using Live Mode.
+The Cinema Trail is configured from the supplied poster at ₹1,999 per person, with a ₹100 booking token intended (set `BOOKING_TOKEN_RUPEES=100` in Secret Manager). The backend supports creating a ₹-denominated Razorpay order for a **shared trip with an organiser-confirmed future departure date** and verifies the captured payment before marking it verified. It does not currently provide seat inventory locking, organiser/admin confirmation tools, refund automation, a Razorpay webhook, booking notifications or private-trip quote collection. The current frontend deliberately remains enquiry-first and does not initiate online payment. Complete and test these workflows in Razorpay Test Mode before enabling payment in the frontend or using Live Mode.
 
 ## Security
 
