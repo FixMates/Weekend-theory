@@ -21,6 +21,13 @@ const validTrips = new Set([
   'Strangers, Not for Long'
 ]);
 
+// Keep empty until the organiser confirms real departures. Add exact YYYY-MM-DD dates here before accepting payments.
+const confirmedDepartures = {
+  'Misty Mountain Reset': [],
+  'The Cinema Trail': [],
+  'Strangers, Not for Long': []
+};
+
 function indiaToday() {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Kolkata',
@@ -57,8 +64,9 @@ app.post('/api/create-order', async (req, res) => {
         !Number.isInteger(travellers) || travellers < 1 || travellers > 9 ||
         name.length < 2 || name.length > 100 ||
         !/^[0-9+() -]{8,18}$/.test(phone) ||
-        !/^\d{4}-\d{2}-\d{2}$/.test(date) || date <= indiaToday()) {
-      return res.status(400).json({ error: 'Choose a real future departure date and provide valid traveller details.' });
+        !/^\d{4}-\d{2}-\d{2}$/.test(date) || date <= indiaToday() ||
+        !Array.isArray(confirmedDepartures[b.trip]) || !confirmedDepartures[b.trip].includes(date)) {
+      return res.status(400).json({ error: 'Online booking is available only for organiser-confirmed departure dates. Please enquire for current availability.' });
     }
 
     const tokenRupees = Number(bookingTokenRupees.value() || 100);
