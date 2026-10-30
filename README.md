@@ -7,7 +7,7 @@ Mobile-first trip discovery and booking-enquiry website for curated weekend expe
 - **Firebase Hosting** serves the static website from `public/`.
 - **Cloud Functions for Firebase (Node.js 22)** provides the secure API in `functions/index.js`.
 - **Cloud Firestore** stores booking records. Public client access is denied by `firestore.rules`.
-- **Razorpay** is prepared for server-side order creation and payment verification. Secret credentials are stored in Firebase Secret Manager, never in the website or GitHub.
+- **Razorpay Checkout** is integrated in the frontend and connected to server-side order creation/payment verification. Checkout remains deliberately disabled until real departure dates, final fare policy and cancellation terms are confirmed. Credentials belong in Firebase Secret Manager, never in the website or GitHub.
 
 The root `index.html` is retained for the existing GitHub Pages preview. When editing the website, keep it and `public/index.html` in sync; Firebase Hosting deploys `public/index.html`.
 
@@ -17,8 +17,8 @@ The root `index.html` is retained for the existing GitHub Pages preview. When ed
 - Firebase Functions API and Firestore rules: added.
 - JavaScript syntax and JSON configuration: statically validated.
 - Firebase deployment: **not yet run**; it requires access to your Firebase project and local CLI login.
-- Live Razorpay payments: **not enabled in the frontend**. The current site intentionally collects WhatsApp enquiries while dates, prices, suppliers and availability are placeholders. Do not collect a token until a real departure date, final fare, cancellation terms and availability are confirmed.
-- The backend's shared-trip order endpoint rejects placeholder or non-future dates and rejects private trips that have no confirmed full-vehicle quote.
+- Razorpay Checkout UI/API integration: **implemented but disabled by default**. The frontend `PAYMENTS_ENABLED` flag and both frontend/backend `confirmedDepartures` allowlists are empty. Keep them disabled until actual dates, token policy, final fare, cancellation/refund terms and availability are confirmed. Backend rejects every order date not explicitly allowlisted.
+- The backend's shared-trip order endpoint rejects dates that are not future and explicitly allowlisted as confirmed departures, and rejects private trips that have no confirmed full-vehicle quote.
 
 ## Before deployment
 
