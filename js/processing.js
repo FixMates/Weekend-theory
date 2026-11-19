@@ -32,7 +32,7 @@ function visibleQueries(list=visibleTasks()){
   const ids=new Set(list.map(t=>t.task_id));
   return queries.filter(q=>ids.has(q.task_id));
 }
-function canEditTask(t){return !!t&&(isSupervisor()||actorOwnsTask(t))}
+function canEditTask(t){return !!t&&(isSupervisor()||(actorOwnsTask(t)&&!["Completed","Cancelled"].includes(t.status)))}
 function canRespondQuery(q){
   if(!q)return false;
   if(isSupervisor())return true;
@@ -254,6 +254,7 @@ function queryForm(taskId){
   if(!t)return note("No active task is available for a question. Create or assign a task first.");
   $("#qTask").innerHTML=eligible.map(x=>'<option value="'+E(x.task_id)+'">'+E(x.task_id+" · "+x.insured+" · "+x.processor)+'</option>').join("");
   $("#qTask").value=t.task_id;
+  updateQuestionContext();
   $("#qRaisedAt").value=fmt(now());
   $("#qRaisedBy").value=actor?.full_name||"Local user";
   $("#qOwner").value="";
@@ -266,6 +267,10 @@ function queryForm(taskId){
   show("queryModal");
 }
 
+function updateQuestionContext(){
+  const t=visibleTasks().find(x=>x.task_id===$("#qTask").value);
+  $("#qTaskMeta").value=t?[t.series,t.insured,t.processor,t.team||"No team"].filter(Boolean).join(" · "):"";
+}
 async function saveQuery(){
   const task=visibleTasks().find(x=>x.task_id===$("#qTask").value);
   const question=$("#qQuestion").value.trim(),owner=$("#qOwner").value.trim(),due=$("#qDue").value;
@@ -354,6 +359,7 @@ function bind(){
   $("#addQuery").onclick=()=>queryForm();
   $("#saveTask").onclick=()=>saveTask().catch(e=>note(e.message));
   $("#saveQuery").onclick=()=>saveQuery().catch(e=>note(e.message));
+  $("#qTask").onchange=updateQuestionContext;
   $("#saveResponse").onclick=()=>saveResponse().catch(e=>note(e.message));
   $("#exportTasks").onclick=downloadTasks;$("#exportQueries").onclick=downloadQueries;
   ["taskSearch","taskStatusFilter","processorFilter","teamFilter","tatFilter","receivedFrom"].forEach(x=>$("#"+x).addEventListener("input",renderTasks));
