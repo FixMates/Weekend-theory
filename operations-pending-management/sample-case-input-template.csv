@@ -1,5 +1,5 @@
-0,CASE-1001,Northwind Health,Missing provider invoice,Pending,Anita,2026-11-09,2026-11-11,High,2026-11-21,Awaiting invoice,2026-11-19,
-1,CASE-1002,BluePeak Ltd,Incorrect account mapping,Day Follow-up,Rahul,2026-11-16,2026-11-18,Critical,2026-11-19,Customer contacted,2026-11-18,
-2,CASE-1003,Orchid Systems,Duplicate service request,Duplicate,Anita,2026-11-14,2026-11-17,Medium,2026-11-24,Duplicate of CASE-1001,,CASE-1001
-3,CASE-1004,Vertex Care,Contract clarification,In Progress,Meera,2026-11-18,2026-11-19,Low,2026-11-26,Reviewing contract,2026-11-20,
-4,CASE-1005,Aster Group,Resolution confirmed,Closed,Rahul,2026-11-07,2026-11-15,Medium,2026-11-18,Resolved and confirmed,,
+CASE-1001,Northwind Health,Missing provider invoice,Pending,Anita,2026-11-09,2026-11-11,High,2026-11-21,Awaiting invoice,2026-11-19,
+CASE-1002,BluePeak Ltd,Incorrect account mapping,Day Follow-up,Rahul,2026-11-16,2026-11-18,Critical,2026-11-19,Customer contacted,2026-11-18,
+CASE-1003,Orchid Systems,Duplicate service request,Duplicate,Anita,2026-11-14,2026-11-17,Medium,2026-11-24,Duplicate of CASE-1001,,CASE-1001
+CASE-1004,Vertex Care,Contract clarification,In Progress,Meera,2026-11-18,2026-11-19,Low,2026-11-26,Reviewing contract,2026-11-20,
+CASE-1005,Aster Group,Resolution confirmed,Closed,Rahul,2026-11-07,2026-11-15,Medium,2026-11-18,Resolved and confirmed,,
