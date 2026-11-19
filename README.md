@@ -84,3 +84,8 @@ The Cinema Trail is configured from the supplied poster at ₹1,999 per person, 
 - Firestore client rules deny all direct public reads/writes to booking documents; the Admin SDK operates on the server.
 - Razorpay credentials are loaded from Firebase Secret Manager.
 - Never commit `.env` files, service-account keys, Razorpay secrets or Firebase Admin credentials.
+
+
+## OPEX Control workspace
+
+The isolated OPEX prototype is available under [`public/opex`](public/opex/README.md) and is hosted at `/opex/` after Firebase Hosting deployment. See its [eight-round implementation checklist](public/opex/CHECKLIST.md) and [deployment guide](public/opex/DEPLOYMENT.md). The existing Weekend-theory booking app remains at the root.
