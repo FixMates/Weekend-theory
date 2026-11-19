@@ -8,6 +8,7 @@
 - `submit.html` — separate Form Workspace: published form picker, assigned forms, conditional fields, dependent dropdowns, submitter recent items and pended corrections
 - `review.html` — separate Supervisor Review: approve, pend, reject, reason and due date
 - `dashboard.html` — separate operational dashboard with status queues and five-second refresh
+- `processing.html` — integrated Processing & Pending Control Tower with task register, question log, TAT/AHT and query lifecycle
 
 ## Shared data flow
 - Admin form index: `_system/forms.json`
@@ -17,6 +18,13 @@
 - Reusable dropdown values: `_system/dropdowns.json`
 - Submission versions: `data/{formId}/YYYY-MM.ndjson`
 - Audit events: `_audit/YYYY-MM.ndjson`
+- Processing tasks: `_operations/tasks/YYYY-MM.ndjson` (append-only versions projected by task ID)
+- Processing queries: `_operations/queries/YYYY-MM.ndjson` (append-only versions projected by query ID)
+
+## Processing & Pending Management
+The Processing & Pending workspace shares the same connected OPEX folder and active user profile. It maintains a task register and a linked question log: each task can have multiple queries, and each query carries its Task ID, processor, insured, team, owner, response, category, validity, SOP-update flag and follow-up date. Task records include received/processed timestamps, start/end time, per-task TAT target, delayed reason, gross TAT, external wait, net TAT and AHT. External query intervals are excluded from net TAT; internal query intervals remain included. Gross TAT remains available for transparency. External waiting intervals are merged before deduction so overlapping external queries are not double-counted. Completed tasks with breached net TAT require a delayed reason. Task and query changes append new versions and audit events. The page exports task and query CSVs.
+
+This register is a dedicated operational task form and is not automatically populated from arbitrary dynamic form submissions. If you want an existing published form to create task records, its field mapping must be configured explicitly before enabling that workflow.
 
 All pages use the same shared-folder storage abstraction and read the same submission files. The dashboard and review queue project the latest version for each submission ID, so a pend, response or decision updates the current queue state without deleting earlier versions.
 
