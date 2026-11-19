@@ -2,11 +2,11 @@
 
 ## Deliverables
 - `operations-pending-management.html` — standalone, offline HTML application.
-- `sample-case-input-template.xlsx` — sample workbook with expected columns and sample rows.
+- `sample-case-input-template.csv` — sample import file with expected columns and sample rows.
 
 ## Start
 1. Download both files and open the HTML in a current Chrome or Edge browser.
-2. Select **Import Excel / CSV** and load the sample workbook.
+2. Select **Import Excel / CSV** and load the sample CSV file.
 3. Open **SLA & Settings**; set the operator label and adjust status SLA hours to your policy.
 4. In **Case Register**, select a proposed status and click **Change**. A reason and operator are mandatory.
 5. Use **Audit Trail** for a global view. Export CSV for analysis/printing and JSON for full backup.
