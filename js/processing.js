@@ -177,8 +177,8 @@ function taskForm(t){
   const assigned=users.find(u=>u.user_id===t?.processor_user_id)||activeUsers.find(u=>norm(u.full_name)===norm(t?.processor));
   const team=teams.find(x=>String(x.team_id)===String(t?.team_id))||teams.find(x=>norm(teamName(x))===norm(t?.team));
   const values={
-    tProcessor:assigned?.user_id||(isSupervisor()?(actor?.user_id||""):""),
-    tTeam:team?.team_id||t?.team_id||actor?.team_id||"",
+    tProcessor:assigned?.user_id||(!t&&isSupervisor()?(actor?.user_id||""):""),
+    tTeam:team?.team_id||t?.team_id||(!t?(actor?.team_id||""):""),
     tInsured:t?.insured||"",tSeries:t?.series||"",tProposal:t?.proposal||"",
     tReceived:localInput(t?.received_at||now()),tStatus:t?.status||"Received",
     tTarget:t?.tat_target_hours??24,tPriority:t?.priority||"Medium",
