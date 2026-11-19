@@ -30,7 +30,7 @@ Legend: [x] implementation file exists; [~] partial implementation; [ ] not impl
 - [~] 19 `review.html` — supervisor queue. Test: team scoping, approve, pend, reject, required reason and due date.
 - [~] 20 `my-items.html` — submitter response view. Test: only own pended items, edit and resubmit.
 - [~] 21 `js/workflow/pend.js` — review decisions and responses. Test: valid/invalid state transitions, repeat pend and audit event.
-- [~] 22 `js/ui/notifications.js` — in-app notification file helpers. Test: append and unread display. UI integration is incomplete.
+- [~] 22 `js/ui/notifications.js` — in-app notification file helpers. Test: append and display on My Items. Supervisor decisions now create in-app notifications; read/unread management is incomplete.
 
 ## Round 5 — Dashboards
 - [~] 23 `dashboard.html` — dashboard viewer. Test: access rules, date filters and refresh.
@@ -66,7 +66,7 @@ Legend: [x] implementation file exists; [~] partial implementation; [ ] not impl
 - [ ] Email notifications actually deliver for all specified triggers. SMTP dispatch must be configured and tested.
 - [ ] XLSX export works for 10K+ rows in under 60 seconds. Current utility exports CSV, not XLSX.
 - [ ] Cached dashboard loads under 3 seconds with 1M synthetic rows. Not benchmarked; current aggregator is not designed/validated for that load.
-- [~] Offline submissions queue and can sync when a user reopens the app. Background sync is not automatic/reliable.
+- [~] Offline submissions queue and retry when the app is opened or the browser comes online. Background sync while the app is closed is not guaranteed.
 - [~] Hash-chain integrity verification. Audit verification exists; submission signatures/chain need completion.
 - [ ] Concurrent edit, lock expiry, conflict and crash-recovery scenarios. Not validated.
 
@@ -74,7 +74,7 @@ Legend: [x] implementation file exists; [~] partial implementation; [ ] not impl
 The specification simultaneously requires (a) no backend/database, (b) shared OneDrive/SharePoint/network JSON files, and (c) 1,000+ concurrent users with 1,000,000+ monthly submissions and tamper-proof authorization. Those constraints cannot be guaranteed together. File System Access API writes and sync folders do not provide distributed transactions, atomic compare-and-swap, server-enforced RBAC or a trusted signature verifier. This branch is a functional prototype foundation, not a production release for regulated/critical data. Choose either the no-backend pilot with a small controlled user cohort, or a transactional backend/identity/queue architecture for the stated scale.
 
 ## Validation evidence log
-- [x] Static JavaScript syntax parse: all 34 repository JS modules fetched from this branch and parsed after removing module import/export declarations. This confirms syntax only, not browser runtime behavior.
+- [x] Static JavaScript syntax parse: all 33 repository JS modules fetched from this branch and parsed after removing module import/export declarations. This confirms syntax only, not browser runtime behavior.
 - [ ] Browser self-tests: not executed in a real Chrome/Edge browser in this session. Run Admin → System → Run automated self-tests.
 - [ ] Functional end-to-end and multi-user tests: not executed.
 - [ ] Performance benchmarks: not executed.
