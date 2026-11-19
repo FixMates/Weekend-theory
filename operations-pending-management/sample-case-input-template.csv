@@ -1,3 +1,4 @@
+Case ID,Customer / Account,Issue / Description,Current Status,Assigned To,Created Date,Last Updated,Priority,SLA Target Date,Remarks / Notes,Next Follow-up Date,Linked Case ID
 CASE-1001,Northwind Health,Missing provider invoice,Pending,Anita,2026-11-09,2026-11-11,High,2026-11-21,Awaiting invoice,2026-11-19,
 CASE-1002,BluePeak Ltd,Incorrect account mapping,Day Follow-up,Rahul,2026-11-16,2026-11-18,Critical,2026-11-19,Customer contacted,2026-11-18,
 CASE-1003,Orchid Systems,Duplicate service request,Duplicate,Anita,2026-11-14,2026-11-17,Medium,2026-11-24,Duplicate of CASE-1001,,CASE-1001
