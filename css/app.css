@@ -3,3 +3,40 @@
 /* OPEX separated-page shell */
 .portal{max-width:1440px;margin:auto;padding:0 28px}.portal-head{min-height:76px;display:flex;align-items:center;gap:22px;border-bottom:1px solid var(--line);flex-wrap:wrap}.brand-link{font-weight:800;font-size:18px;color:var(--text);text-decoration:none;margin-right:auto}.brand-link span{color:var(--blue)}.portal-head nav{display:flex;gap:18px;flex-wrap:wrap}.portal-head nav a{color:#b7c7d9;text-decoration:none;font-size:13px}.portal-head nav a:hover{color:var(--blue)}.portal-head select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;max-width:220px}.portal-main{padding:28px 0;min-height:calc(100vh - 130px)}.portal-main>h1{font-size:30px}.hero{padding:38px 0 28px;max-width:800px}.hero h1{font-size:clamp(30px,5vw,48px);line-height:1.12;margin:12px 0}.hero p{font-size:16px;max-width:680px}.launch-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:16px 0 24px}.launch-card{display:block;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;text-decoration:none;color:var(--text);transition:.15s}.launch-card:hover{border-color:var(--blue);transform:translateY(-2px)}.launch-card span{font-size:10px;letter-spacing:1.2px;color:var(--blue)}.launch-card h2{font-size:20px;margin:12px 0 8px}.launch-card p{color:var(--muted);min-height:58px}.launch-card b{color:var(--blue);font-size:12px}.portal-foot{border-top:1px solid var(--line);padding:16px 0;color:#71859d;font-size:11px}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin:18px 0}.tabs button.active{background:var(--blue);color:#071321}.field-config{background:#0d1929;border:1px solid var(--line);padding:12px;border-radius:10px;margin:10px 0}.field-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:end}.field-grid label,.panel>label{display:grid;gap:5px;color:var(--muted);font-size:11px}.field-grid input,.field-grid select,.panel>label input,.panel>label textarea,.panel select,.panel textarea{min-width:0;width:100%;background:#0b1625;border:1px solid var(--line);border-radius:7px;padding:9px;color:var(--text);font:inherit}.field-grid input[type=checkbox]{width:auto}.field-config .hint{display:block;margin-top:7px}.portal .panel h3{margin-top:20px}.portal .grid2>label{display:grid;gap:6px;color:var(--muted);font-size:12px}.portal .grid2 select[multiple]{min-height:130px}.field[hidden]{display:none!important}#toast[hidden],#connect[hidden]{display:none}.portal table{min-width:600px}.portal .cards{margin-top:18px}.portal-main .notice{margin-top:22px}.portal-main label{margin:8px 0}.portal-main input,.portal-main select,.portal-main textarea{max-width:100%}
 @media(max-width:1100px){.launch-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.field-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.portal{padding:0 14px}.portal-head{padding:12px 0}.portal-head nav{order:3;width:100%;gap:12px}.portal-head nav a{font-size:12px}.launch-grid{grid-template-columns:1fr}.field-grid{grid-template-columns:1fr}.hero{padding-top:26px}}
+
+/* Unified Pending Management visual language across all OPEX workspaces */
+:root{color-scheme:light;--bg:#f3f6fa;--panel:#fff;--panel2:#e8eef7;--line:#e2e8f0;--text:#172235;--muted:#64748b;--blue:#2563eb;--green:#15803d;--amber:#b45309;--red:#b91c1c}
+body{background:#f3f6fa;color:#172235}
+.portal{max-width:1540px}
+.portal-head{background:#142238;color:#fff;padding:12px 18px;border:0;border-radius:0 0 12px 12px}
+.portal-head .brand-link{color:#fff}
+.portal-head nav a{color:#d2deed}
+.portal-head nav a:hover{color:#fff}
+.portal-head select{background:#20334d;color:#fff;border-color:#40516b}
+.portal-main{padding-top:22px}
+.panel,.card,.launch-card{background:#fff;color:#172235;border:1px solid #e2e8f0;box-shadow:0 5px 20px #1422380a}
+.panel h2,.panel h3,.launch-card h2{color:#172235}
+.muted,.hint,.launch-card p{color:#64748b}
+button,.button{background:#e8eef7;color:#23334c;border-color:#dbe3ee}
+button.primary{background:#2563eb;color:#fff;border-color:#2563eb}
+button.success{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+button.danger{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.portal-main input,.portal-main select,.portal-main textarea,.field-grid input,.field-grid select,.panel>label input,.panel>label textarea,.panel select,.panel textarea{background:#fff;color:#172235;border-color:#d5deea}
+.portal table{background:#fff;color:#172235}
+.portal th{background:#f8fafc;color:#65748a}
+.portal td{border-bottom:1px solid #e2e8f0}
+.pill{background:#e2e8f0;color:#475569}
+.pill.approved{background:#dcfce7;color:#166534}
+.pill.pended{background:#fef3c7;color:#92400e}
+.pill.rejected{background:#fee2e2;color:#991b1b}
+.pill.responded{background:#dbeafe;color:#1d4ed8}
+.notice{background:#eff6ff;color:#1e40af;border-left-color:#2563eb}
+.field-config{background:#f8fafc;border-color:#e2e8f0}
+.field-grid label,.panel>label,.portal .grid2>label{color:#526176}
+.tabs button{background:transparent;color:#526176}
+.tabs button.active{background:#dbeafe;color:#1d4ed8}
+.launch-card{transition:.15s}
+.launch-card span,.launch-card b{color:#2563eb}
+#toast{background:#142238;color:#fff;border-color:#2563eb}
+[hidden]{display:none!important}
+@media(max-width:650px){.portal-head{border-radius:0}.portal-main>h1{font-size:25px}}
