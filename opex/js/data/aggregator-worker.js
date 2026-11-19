@@ -1,0 +1,1 @@
+import {aggregateForm} from "./aggregator.js";self.onmessage=async e=>{try{const result=await aggregateForm(e.data.formId,e.data.period);self.postMessage({ok:true,result});}catch(error){self.postMessage({ok:false,error:error.message});}};
