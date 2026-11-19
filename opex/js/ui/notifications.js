@@ -1,0 +1,4 @@
+import {readText,appendText} from "../core/storage.js";import {el} from "./components.js";
+export async function pushNotification(userId,item){await appendText("_notifications/"+userId+"/inbox.ndjson",JSON.stringify({notification_id:crypto.randomUUID(),created_at:new Date().toISOString(),read:false,...item})+"\n");}
+export async function listNotifications(userId){try{return (await readText("_notifications/"+userId+"/inbox.ndjson")).trim().split("\n").filter(Boolean).map(JSON.parse).reverse();}catch{return [];}}
+export async function showNotifications(container,userId){const rows=await listNotifications(userId);container.replaceChildren(...rows.map(n=>el("article",{class:"notification"},[el("strong",{},[n.title||"Update"]),el("p",{},[n.message||""])])));}
