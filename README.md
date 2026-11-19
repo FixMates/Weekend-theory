@@ -1,24 +1,41 @@
-# OPEX — browser-only rebuild
+# OPEX — browser-only workflow application
 
-This repository is rebuilt using **HTML, CSS, vanilla JavaScript, and JSON/NDJSON only**. No .NET, C#, Node.js, npm, backend, database server, or build step.
+**Runtime:** HTML + CSS + vanilla JavaScript + JSON / NDJSON. No .NET, C#, Node.js, npm, bundler, database server, or application server.
 
-## Run
-1. Open `index.html` in current Microsoft Edge or Google Chrome.
-2. Select **Connect shared folder** and choose the shared network folder or locally synced SharePoint/OneDrive folder.
-3. Create a form and submit a test record.
+## Start
+1. Open `index.html` using the current Microsoft Edge or Google Chrome.
+2. Click **Connect shared folder** and select the shared OPEX folder.
+3. The first connection creates the workspace folders and a default `System Admin` profile.
+4. In **Users & teams**, add teams and user profiles.
+5. In **Form builder**, create a form, add fields, assign it to teams/users/roles and publish it.
+6. Change **Active user** in the left panel to the intended submitter.
+7. Open **Assigned forms**, fill the form and submit.
+8. Switch to a Supervisor profile and use **Supervisor queue** to approve, pend or reject.
+9. Switch back to the submitter profile, open **My submissions**, open the pended record, correct it and resubmit.
+10. Use **Overview**, **Dashboards**, and **Status queues** to inspect the latest state.
 
-## Implemented foundation
-- Responsive static UI and navigation
-- Shared-folder picker using the File System Access API
-- Workspace bootstrap and JSON/NDJSON persistence
-- Form creation/import and dynamic submission
-- Append-only version records
-- Supervisor approve / pend / reject flow
-- Basic metrics and audit event log
+## Implemented in this iteration
+- Classic script loading (no ES modules), to support direct static-file launch.
+- Workspace folder picker and initial folder/config bootstrap.
+- User profiles, teams, and role/team/user form assignment.
+- Admin form builder with text, number, date, textarea, select, and checkbox fields.
+- Assigned form delivery and dynamic submission UI.
+- NDJSON append-only submission versions stored under `data/{formId}/YYYY-MM.ndjson`.
+- Submitter's pended-item correction and resubmission.
+- Supervisor approve / pend / reject with reason required for pend/reject.
+- Latest-version projection for dashboard counts and status-based queues.
+- Audit event log for form, user, team, submission and review actions.
 
-## Not yet production-ready
-This is a functional foundation, not a security-certified enterprise deployment. Argon2id, encrypted user vault, RSA signatures, cryptographic audit-chain verification, robust multi-user locking, offline sync, XLSX export, recovery tooling, and load tests are not implemented yet.
+## Data layout
+- `_system/forms.json`
+- `_system/users.json`
+- `_system/teams.json`
+- `data/{formId}/YYYY-MM.ndjson`
+- `_audit/YYYY-MM.ndjson`
 
-A browser-only shared folder is not a transactional database. Server-grade RBAC, reliable atomic writes across 1,000+ concurrent users, and 1M+ monthly submissions cannot be guaranteed by this design. OneDrive/SharePoint sync can also introduce propagation delay and conflict copies. Validate the actual storage platform before production use, and do not store sensitive or regulated data until security controls are independently implemented and tested.
+## Important limitations
+This is a browser-side shared-folder workflow prototype, not a secure transactional database. Each workstation/browser profile must grant access to the same folder. File System Access API support depends on a current Chromium browser and a secure/allowed browser context; if the browser blocks folder access from a network `file://` location, the app must be opened from an approved secure static origin.
 
-All runtime code is local browser JavaScript; no remote libraries are loaded.
+The active-user selector is a workflow test/profile switch, **not secure login**. Browser-side role checks are not an authorization boundary. Password hashing, encrypted user vault, MFA, cryptographic signatures, tamper-evident audit verification, supervisor-to-team authorization, email dispatch, offline sync, XLSX export, conflict recovery, and scale/load tests remain unimplemented.
+
+Direct shared-folder writes are not guaranteed atomic across multiple devices or OneDrive/SharePoint sync clients. The original target of 1,000+ concurrent users and 1M+ submissions/month is not validated and must not be represented as achieved. Run a controlled multi-user pilot and verify the actual storage platform before operational rollout. Do not store sensitive or regulated data until authentication and security controls are implemented and independently tested.
