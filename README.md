@@ -28,6 +28,13 @@ This register is a dedicated operational task form and is not automatically popu
 
 All pages use the same shared-folder storage abstraction and read the same submission files. The dashboard and review queue project the latest version for each submission ID, so a pend, response or decision updates the current queue state without deleting earlier versions.
 
+## Admin access and form-to-processing integration
+The Admin Console is a privileged workspace for `admin` and `builder` roles. Its navigation entry is hidden for other roles, and the page itself checks the active role before showing form, user, team or dropdown administration. The default active profile on a new browser is a submitter when one exists. This is a browser-side role gate only: the shared-folder architecture does not provide secure authentication or server-enforced authorization, so it must not be treated as a security boundary.
+
+In Admin Console, a form can enable **Create a Processing & Pending task when submitted** and map its Insured Name and Task / Series fields, plus optional Proposal Number, Received Date & Time, Processor Name and TAT target fields. The Form Workspace uses that configuration to create a linked task in `_operations/tasks/YYYY-MM.ndjson` when a user submits the form. Corrected resubmissions update the same linked task instead of creating a second one. The task stores its source submission and form IDs. Use the `datetime-local` field type when mapping a precise Received Date & Time.
+
+All OPEX pages now share the light dashboard visual language used by Processing & Pending.
+
 ## Conditional and dependent fields
 In Admin Console, each field can define:
 - `Depends on field ID` — parent field identifier
