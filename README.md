@@ -1,41 +1,45 @@
-# OPEX — browser-only workflow application
+# OPEX — separate browser workspaces
 
-**Runtime:** HTML + CSS + vanilla JavaScript + JSON / NDJSON. No .NET, C#, Node.js, npm, bundler, database server, or application server.
+**Runtime:** static HTML, CSS, vanilla JavaScript, JSON and NDJSON only. No .NET, C#, Node.js, npm, build step, backend or database server.
 
-## Start
-1. Open `index.html` using the current Microsoft Edge or Google Chrome.
-2. Click **Connect shared folder** and select the shared OPEX folder.
-3. The first connection creates the workspace folders and a default `System Admin` profile.
-4. In **Users & teams**, add teams and user profiles.
-5. In **Form builder**, create a form, add fields, assign it to teams/users/roles and publish it.
-6. Change **Active user** in the left panel to the intended submitter.
-7. Open **Assigned forms**, fill the form and submit.
-8. Switch to a Supervisor profile and use **Supervisor queue** to approve, pend or reject.
-9. Switch back to the submitter profile, open **My submissions**, open the pended record, correct it and resubmit.
-10. Use **Overview**, **Dashboards**, and **Status queues** to inspect the latest state.
+## Pages
+- `index.html` — navigation home
+- `admin.html` — separate Admin Console: form builder, users, teams and master dropdown library
+- `submit.html` — separate Form Workspace: published form picker, assigned forms, conditional fields, dependent dropdowns, submitter recent items and pended corrections
+- `review.html` — separate Supervisor Review: approve, pend, reject, reason and due date
+- `dashboard.html` — separate operational dashboard with status queues and five-second refresh
 
-## Implemented in this iteration
-- Classic script loading (no ES modules), to support direct static-file launch.
-- Workspace folder picker and initial folder/config bootstrap.
-- User profiles, teams, and role/team/user form assignment.
-- Admin form builder with text, number, date, textarea, select, and checkbox fields.
-- Assigned form delivery and dynamic submission UI.
-- NDJSON append-only submission versions stored under `data/{formId}/YYYY-MM.ndjson`.
-- Submitter's pended-item correction and resubmission.
-- Supervisor approve / pend / reject with reason required for pend/reject.
-- Latest-version projection for dashboard counts and status-based queues.
-- Audit event log for form, user, team, submission and review actions.
+## Shared data flow
+- Admin form index: `_system/forms.json`
+- Individual current form definitions: `forms/{formId}.json`
+- Versioned form definitions: `forms/{formId}/v{version}.json`
+- User and team definitions: `_system/users.json`, `_system/teams.json`
+- Reusable dropdown values: `_system/dropdowns.json`
+- Submission versions: `data/{formId}/YYYY-MM.ndjson`
+- Audit events: `_audit/YYYY-MM.ndjson`
 
-## Data layout
-- `_system/forms.json`
-- `_system/users.json`
-- `_system/teams.json`
-- `data/{formId}/YYYY-MM.ndjson`
-- `_audit/YYYY-MM.ndjson`
+All pages use the same shared-folder storage abstraction and read the same submission files. The dashboard and review queue project the latest version for each submission ID, so a pend, response or decision updates the current queue state without deleting earlier versions.
 
-## Important limitations
-This is a browser-side shared-folder workflow prototype, not a secure transactional database. Each workstation/browser profile must grant access to the same folder. File System Access API support depends on a current Chromium browser and a secure/allowed browser context; if the browser blocks folder access from a network `file://` location, the app must be opened from an approved secure static origin.
+## Conditional and dependent fields
+In Admin Console, each field can define:
+- `Depends on field ID` — parent field identifier
+- `Show only when parent equals` — exact parent value that makes the field visible
+- `Master dropdown key` — use a reusable list from the dropdown library
+- `Options` — for dependent dropdowns, enter mappings such as `Pending => Missing document | Clarification needed,Rejected => Invalid data | Policy mismatch`
 
-The active-user selector is a workflow test/profile switch, **not secure login**. Browser-side role checks are not an authorization boundary. Password hashing, encrypted user vault, MFA, cryptographic signatures, tamper-evident audit verification, supervisor-to-team authorization, email dispatch, offline sync, XLSX export, conflict recovery, and scale/load tests remain unimplemented.
+Example: create a `status` dropdown with values Pending and Rejected. Add a `pend_reason` dropdown, set its parent to `status`, and enter the mapping above. Add a `correction_details` textarea with parent `status` and show-when value `Pending`. The form renderer updates the dependent options and hides/shows conditional fields when the parent changes.
 
-Direct shared-folder writes are not guaranteed atomic across multiple devices or OneDrive/SharePoint sync clients. The original target of 1,000+ concurrent users and 1M+ submissions/month is not validated and must not be represented as achieved. Run a controlled multi-user pilot and verify the actual storage platform before operational rollout. Do not store sensitive or regulated data until authentication and security controls are implemented and independently tested.
+## Run
+1. Open the repository's `index.html` in current Microsoft Edge or Chrome.
+2. Open Admin Console and connect the shared folder.
+3. Create teams and user profiles. Switch the active profile from the header when testing each role.
+4. Build and publish a form. Assign it to one or more teams or users.
+5. Open Form Workspace. The published form appears in the picker for assigned users.
+6. Submit a record. Open Supervisor Review as a supervisor assigned to that team and pend it with a reason and due date.
+7. Return to Form Workspace as the original submitter. The pending correction appears; correct and resubmit.
+8. Verify the latest status and version in Dashboard. The dashboard refreshes every five seconds.
+
+## Accuracy and operational constraints
+The dashboard displays the latest version found in the shared-folder files and its last read time. Five-second polling is the application refresh interval, **not a guarantee of five-second cross-device visibility**. OneDrive/SharePoint sync propagation and network-share caching can delay when another workstation sees a write.
+
+This is a browser-side shared-folder system, not a transactional database. Concurrent writes from multiple workstations can race; there is no server-enforced authorization, reliable distributed lock, Argon2id login, encrypted user vault, signature verification, hash-chained audit, offline sync, precomputed aggregation worker, or Excel export in this iteration. Profile switching is for workflow testing, not secure authentication. The original 1,000+ concurrent user and 1M+ monthly submission targets are not validated. Pilot with real network storage and concurrency tests before production use; do not store regulated/sensitive data until security controls are independently implemented and verified.
