@@ -90,3 +90,13 @@ The specification simultaneously requires (a) no backend/database, (b) shared On
 
 ## Validation evidence log
 Record environment, browser version, test data size, expected result, actual result, tester and timestamp for each test. Do not change [ ] to [x] until repeatable evidence exists.
+
+
+## Integration and deployment validation (2026-11-19)
+- [x] OPEX app mirrored into Firebase Hosting public root at `public/opex/` (43 source/documentation files).
+- [x] Existing Weekend-theory files under `public/`, Firebase Functions, API rewrite and Firestore configuration preserved in the integration branch.
+- [x] Static JavaScript syntax parsing completed on the source modules; this is not browser execution.
+- [ ] Pull request review and merge to `main`.
+- [ ] Firebase Hosting deployment and live HTTPS smoke test.
+- [ ] Browser self-tests and end-to-end functional acceptance.
+- [ ] Multi-user concurrency, recovery, security and performance tests.
