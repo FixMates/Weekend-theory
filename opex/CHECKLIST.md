@@ -23,7 +23,7 @@ Legend: [x] implementation file exists; [~] partial implementation; [ ] not impl
 - [~] 14 `js/ui/form-renderer.js` — dynamic basic controls. Test: all field types, min/max, dropdowns, required fields and historical form versions.
 - [~] 15 `js/workflow/submission.js` — create and version records. Test: submit once, retry, duplicate prevention and signed record verification. Signing is not yet wired.
 - [~] 16 `js/workflow/versioning.js` — append version helper/latest-by-ID. Test: sequential versions and latest pointer.
-- [~] 17 `js/data/outbox.js` — IndexedDB queue. Test: offline queue, reload, replay and duplicate replay.
+- [~] 17 `js/data/outbox.js` — IndexedDB queue with retry on workspace open and browser online event. Test: offline queue, reload, reconnect, replay and duplicate replay; distributed-safe writes remain unsupported.
 - [~] 18 `js/data/ndjson.js` — NDJSON streaming and append. Test: UTF-8, large-file paging, malformed line and append consistency. Distributed-safe writes are not provided.
 
 ## Round 4 — Supervisor Review
@@ -90,3 +90,12 @@ The specification simultaneously requires (a) no backend/database, (b) shared On
 
 ## Validation evidence log
 Record environment, browser version, test data size, expected result, actual result, tester and timestamp for each test. Do not change [ ] to [x] until repeatable evidence exists.
+
+
+## Integration and deployment validation
+- [x] OPEX source is retained under `opex/` and mirrored to Firebase Hosting at `public/opex/`.
+- [x] Existing Weekend-theory root app and Firebase backend configuration preserved.
+- [x] Outbox retry is triggered on protected-page open and browser online event.
+- [x] Submitter notification panel wired for supervisor approve/pend/reject events.
+- [ ] Browser self-tests, end-to-end, concurrency, security and performance tests remain unexecuted.
+- [ ] PR review/merge and Firebase Hosting deployment remain pending.
