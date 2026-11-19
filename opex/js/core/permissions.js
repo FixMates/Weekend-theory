@@ -1,0 +1,4 @@
+const MATRIX={admin:["*"],builder:["forms.read","forms.create","forms.update","dashboards.read","dashboards.create","dashboards.update","submissions.read_team"],supervisor:["forms.read","forms.read_assigned","submissions.create","submissions.read_team","submissions.review","dashboards.read","reports.export"],submitter:["forms.read_assigned","submissions.create","submissions.read_own","submissions.respond"]};
+export function can(user,action){if(!user||user.is_active===false)return false;const grants=MATRIX[user.role]||[];return grants.includes("*")||grants.includes(action);}
+export function requirePermission(user,action){if(!can(user,action))throw new Error("Permission denied: "+action);return true;}
+export function canAccessTeam(user,teamId){return user?.role==="admin"||user?.team_id===teamId||(user?.role==="supervisor"&&user.supervises_teams?.includes(teamId));}
