@@ -1,0 +1,6 @@
+const DB="opex-outbox",STORE="items";
+function db(){return new Promise((res,rej)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore(STORE,{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}
+export async function enqueue(item){const d=await db();return new Promise((res,rej)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).put({id:item.id||crypto.randomUUID(),created_at:new Date().toISOString(),status:"queued",...item});tx.oncomplete=()=>{d.close();res();};tx.onerror=()=>{d.close();rej(tx.error);};});}
+export async function listOutbox(){const d=await db();return new Promise((res,rej)=>{const r=d.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>{d.close();res(r.result);};r.onerror=()=>{d.close();rej(r.error);};});}
+export async function removeOutbox(id){const d=await db();return new Promise((res,rej)=>{const tx=d.transaction(STORE,"readwrite");tx.objectStore(STORE).delete(id);tx.oncomplete=()=>{d.close();res();};tx.onerror=()=>{d.close();rej(tx.error);};});}
+export async function queueCount(){return (await listOutbox()).length;}
