@@ -1,0 +1,3 @@
+export function nextVersion(previous){return (previous?.version||0)+1;}
+export function makeVersion({submission,actor,action,state,data,details={}}){const now=new Date().toISOString();return {...submission,version:nextVersion(submission),submitted_at:submission.submitted_at||now,updated_at:now,status:state,data:data??submission.data,workflow:{...(submission.workflow||{}),current_state:state,history:[...(submission.workflow?.history||[]),{iteration:(submission.workflow?.current_iteration||1),state,actor,timestamp:now,action,details}]}};}
+export function latestById(records){const map=new Map();for(const r of records){const p=map.get(r.submission_id);if(!p||r.version>p.version)map.set(r.submission_id,r);}return [...map.values()];}
